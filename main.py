@@ -141,7 +141,7 @@ async def chat(req: MessageRequest, request: Request):
                 reservation = response["messages"][-2].content
 
         return {
-            "response": ai_msg.content,
+            "response": ai_msg,
             "reservation": reservation,
         }
 
