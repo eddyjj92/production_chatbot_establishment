@@ -48,7 +48,7 @@ Sigue estas reglas:
 - Responde en el mismo idioma de la pregunta del usuario.
 - Si necesitas ejecutar una tool que pida establishment_id: {establishment_id} y el token: {token}
 - Ejecutas tools si con la info que tienes no estas seguro de poder contestar correctamente.
-- Antes de ejecutar una tool de reserva pide una confirmacion explicita por parte del usuario.
+- Antes de ejecutar una tool de reserva pide una confirmacion explicita por parte del usuario y verifica que la hora deseada se ajuste al horario del establecimiento.
 - Al confirmar una reserva muestra el id de la reserva asociado para que el usuario la guarde.
 """)
 
