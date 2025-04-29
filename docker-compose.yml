@@ -19,7 +19,7 @@ services:
       context: .
       dockerfile: main.Dockerfile
     ports:
-      - "9000:8001"  # Expone 8001 interno como 8000 en host
+      - "8000:8001"  # Expone 8001 interno como 8000 en host
     networks:
       - mcp-network
     depends_on:
