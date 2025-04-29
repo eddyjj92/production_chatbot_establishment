@@ -1,6 +1,7 @@
 from typing import Optional, Dict, List, Any
 import requests
 from mcp.server.fastmcp import FastMCP
+from datetime import datetime
 
 mcp = FastMCP("mcp")
 
@@ -85,6 +86,26 @@ def get_establishment_address(establishment_id: str, token: str) -> Optional[str
         SystemError: Si ocurre un error al comunicarse con la API.
     """
     return fetch_establishment_field(establishment_id, token, "address")
+
+@mcp.tool(
+    name="get_establishment_schedule",
+    description="Obtiene los horarios del establecimiento desde la API de Clapzy.",
+)
+def get_establishment_address(establishment_id: str, token: str) -> Optional[str]:
+    """
+    Obtiene la dirección física del establecimiento especificado desde la API de Clapzy.
+
+    Args:
+        establishment_id (str): ID único del establecimiento que se desea consultar.
+        token (str): Token de autenticación Bearer válido para la API de Clapzy.
+
+    Returns:
+        Optional[str]: La dirección del establecimiento si la consulta es exitosa; None en caso de error.
+
+    Raises:
+        SystemError: Si ocurre un error al comunicarse con la API.
+    """
+    return fetch_establishment_field(establishment_id, token, "schedule")
 
 
 @mcp.tool(
@@ -184,6 +205,23 @@ def create_reservation(
     except Exception as e:
         print(f"Error inesperado: {e}")
         return {"error": "Error inesperado", "details": str(e)}
+
+
+@mcp.tool(
+    name="get_current_datetime",
+    description="Devuelve un string con la fecha y hora actual del sistema.",
+)
+def get_current_datetime() -> str:
+    """
+    Devuelve un string con la fecha y hora actual del sistema.
+
+    Returns:
+        str: String con la fecha y la hora, en formato 'fecha {fecha} y hora {hora}'.
+    """
+    now = datetime.now()
+    fecha = now.date().isoformat()
+    hora = now.time().strftime('%H:%M:%S')
+    return f"Fecha {fecha} y hora {hora} actual"
 
 
 if __name__ == "__main__":
