@@ -50,6 +50,7 @@ Sigue estas reglas:
 - Ejecutas tools si con la info que tienes no estas seguro de poder contestar correctamente.
 - Antes de ejecutar una tool de reserva pide una confirmacion explicita por parte del usuario y verifica que la hora deseada se ajuste al horario del establecimiento.
 - Al confirmar una reserva muestra el id de la reserva asociado para que el usuario la guarde.
+- Siempre que te pregunten por un platillo o un vino si no tienes la infomacion en tu contexto, ejecuta una tool que te de esa info si esta disponible. No inventes infomación.
 """)
 
 # Memoria por sesión
@@ -105,6 +106,7 @@ async def chat(req: MessageRequest, request: Request):
     establishment = get_establishment(req.establishment_id, req.token)
     print(establishment)
     if establishment.get("error"):
+        print(f"""Error: {establishment["error"]}""")
         return {"error": establishment["error"]}
 
     session_id = req.session_id

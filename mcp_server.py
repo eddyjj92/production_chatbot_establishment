@@ -131,18 +131,18 @@ def get_establishment_phone(establishment_id: str, token: str) -> Optional[str]:
 
 @mcp.tool(
     name="get_establishment_dishes",
-    description="Obtiene una lista de platillos del menu del establecimiento desde la API de Clapzy.",
+    description="Obtiene una lista de platillos o bebidas(vinos, cervezas, referscos) del menu del establecimiento desde la API de Clapzy.",
 )
 def get_establishment_name(establishment_id: str, token: str) -> Optional[List[Dict]]:
     """
-    Obtiene una lista de platillos del menu del establecimiento desde la API de Clapzy.
+    Obtiene una lista de platillos o bebidas(vinos, cervezas, referscos) del menu del establecimiento desde la API de Clapzy.
 
     Args:
         establishment_id (str): ID único del establecimiento que se desea consultar.
         token (str): Token de autenticación Bearer válido para la API de Clapzy.
 
     Returns:
-        Optional[List[Dict]]: Lista de diccionarios, cada uno representando un platillo.
+        Optional[List[Dict]]: Lista de diccionarios, cada uno representando un platillo o una bebida(vino, cerveza, refresco).
                               Devuelve None en caso de error o si no hay platillos disponibles.
 
     Raises:
