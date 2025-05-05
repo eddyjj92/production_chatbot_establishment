@@ -11,7 +11,9 @@ from langgraph.prebuilt import create_react_agent
 from langchain_core.messages import HumanMessage, SystemMessage, AIMessage
 from contextlib import asynccontextmanager
 from redis import Redis
-from helpers import get_establishment
+from starlette.staticfiles import StaticFiles
+
+from helpers import get_establishment, get_establishments
 
 # Conexión a Redis
 redis = Redis(host='82.29.197.144', port=6379, db=0, decode_responses=True)
@@ -64,6 +66,9 @@ class MessageRequest(BaseModel):
     token: str
     establishment_id: int
 
+
+class EstablishmentsRequest(BaseModel):
+    token: str
 
 # Context manager para manejar eventos de inicio y cierre de la aplicación
 @asynccontextmanager
@@ -150,6 +155,31 @@ async def chat(req: MessageRequest, request: Request):
     except Exception as e:
         return {"error": str(e)}
 
+
+@app.post("/establishments")
+async def chat(req: EstablishmentsRequest):
+    establishments = get_establishments(req.token)
+    print(establishments)
+    if establishments.get("error"):
+        print(f"""Error: {establishments["error"]}""")
+        return {"error": establishments["error"]}
+
+    return {
+        "establishments": establishments,
+    }
+
+class CustomStaticFiles(StaticFiles):
+    async def get_response(self, path: str, scope):
+        response = await super().get_response(path, scope)
+
+        # Forzar el tipo MIME correcto para archivos JS
+        if path.endswith(".js"):
+            response.headers["Content-Type"] = "application/javascript"
+        return response
+
+BASE_DIR = os.path.dirname(os.path.abspath(__file__))
+app.mount("/assets", CustomStaticFiles(directory=os.path.join(BASE_DIR, "public/spa/assets")), name="assets")
+app.mount("/", CustomStaticFiles(directory=os.path.join(BASE_DIR, "public/spa"), html=True, check_dir=True), name="spa")
 
 if __name__ == "__main__":
     import uvicorn

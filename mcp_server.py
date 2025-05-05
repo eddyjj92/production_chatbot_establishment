@@ -208,6 +208,49 @@ def create_reservation(
 
 
 @mcp.tool(
+    name="get_user_reservations",
+    description="Obtiene todas las reservaciones del usuario autenticado en Clapzy.",
+)
+def get_user_reservations(token: str) -> list:
+    """
+    Obtiene las reservaciones del usuario autenticado utilizando la API de Clapzy.
+
+    Args:
+        token (str): Token de autenticación Bearer válido para la API de Clapzy.
+
+    Returns:
+        list: Lista de reservaciones del usuario o diccionario con error en caso de fallo.
+
+    Raises:
+        SystemError: Si ocurre un error al comunicarse con la API.
+    """
+    url = "https://www.clapzy.app/api/reservations/auth"  # Asegúrate que este es el endpoint correcto
+
+    headers = {
+        "Authorization": f"Bearer {token}",
+        "Accept": "application/json"
+    }
+
+    try:
+        response = requests.get(url, headers=headers)
+        response.raise_for_status()
+
+        # Devuelve la lista completa de reservaciones
+        return response.json().get("reservations", [])
+
+    except requests.exceptions.RequestException as e:
+        error_msg = f"Error en la petición: {e}"
+        if hasattr(e, 'response') and e.response:
+            error_msg += f" | Respuesta: {e.response.text}"
+        print(error_msg)
+        return {"error": "No se pudieron obtener las reservaciones", "details": str(e)}
+
+    except Exception as e:
+        print(f"Error inesperado: {e}")
+        return {"error": "Error inesperado al obtener reservaciones", "details": str(e)}
+
+
+@mcp.tool(
     name="get_current_datetime",
     description="Devuelve un string con la fecha y hora actual del sistema.",
 )
