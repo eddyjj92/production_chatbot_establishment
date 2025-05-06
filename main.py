@@ -1,5 +1,6 @@
 import json
 import os
+from typing import Literal
 from dotenv import load_dotenv
 from fastapi import FastAPI, Request
 from fastapi.middleware.cors import CORSMiddleware
@@ -12,8 +13,8 @@ from langchain_core.messages import HumanMessage, SystemMessage, AIMessage
 from contextlib import asynccontextmanager
 from redis import Redis
 from starlette.staticfiles import StaticFiles
-
 from helpers import get_establishment, get_establishments
+from prompts import system_prompt_reservation, system_prompt_in_establishment
 
 # Conexión a Redis
 redis = Redis(host='82.29.197.144', port=6379, db=0, decode_responses=True)
@@ -36,25 +37,6 @@ model = ChatOpenAI(
     openai_proxy=openai_proxy
 )
 
-# Prompt inicial
-system_prompt = lambda token, establishment_id, establishment_name, chatbot_name, communication_tone: (f"""
-Te llamas {chatbot_name} y eres un mesero en el restaurante {establishment_name}, atendiendo con un tono de comunicacion {communication_tone}. Tu objetivo es ayudar con informacion sobre el menú, realizar reservas y responder preguntas con precisión. 
-Sigue estas reglas:
-- Preséntate de forma elocuente y responde en frases de máximo 40 palabras.
-- No hables de productos o servicios externos ni inventes información.
-- Si un cliente pregunta por la información nutricional de un platillo y no está en los datos del restaurante, usa tu conocimiento general para responder.  
-- Incluye íconos relacionados al tema al final de cada oración.
-- Si te hablan de ofertas o menus, reponde con los datos de los platillos.
-- Cierra con preguntas de retroalimentación variadas sobre el tema, excepto si el cliente quiere terminar la conversacion despídete cortésmente y no hagas mas preguntas.  
-- Si te hablan de pedidos, di que solo puedes hacer reservas.  
-- Responde en el mismo idioma de la pregunta del usuario.
-- Si necesitas ejecutar una tool que pida establishment_id: {establishment_id} y el token: {token}
-- Ejecutas tools si con la info que tienes no estas seguro de poder contestar correctamente.
-- Antes de ejecutar una tool de reserva pide una confirmacion explicita por parte del usuario y verifica que la hora deseada se ajuste al horario del establecimiento.
-- Al confirmar una reserva muestra el id de la reserva asociado para que el usuario la guarde.
-- Siempre que te pregunten por un platillo o un vino si no tienes la infomacion en tu contexto, ejecuta una tool que te de esa info si esta disponible. No inventes infomación.
-""")
-
 # Memoria por sesión
 session_histories = {}
 
@@ -65,10 +47,12 @@ class MessageRequest(BaseModel):
     message: str
     token: str
     establishment_id: int
+    prompt_variant: Literal['reservation', 'in_establishment']
 
 
 class EstablishmentsRequest(BaseModel):
     token: str
+
 
 # Context manager para manejar eventos de inicio y cierre de la aplicación
 @asynccontextmanager
@@ -107,21 +91,28 @@ app.add_middleware(
 
 @app.post("/chat")
 async def chat(req: MessageRequest, request: Request):
-
     establishment = get_establishment(req.establishment_id, req.token)
     print(establishment)
     if establishment.get("error"):
         print(f"""Error: {establishment["error"]}""")
         return {"error": establishment["error"]}
 
-    session_id = req.session_id
+    session_id = f"""{req.session_id}_{req.prompt_variant}_{establishment["id"]}"""
     user_input = req.message
 
     # Inicializar historial si no existe
     if session_id not in session_histories:
+        system_prompt = {
+            "reservation": system_prompt_reservation,
+            "in_establishment": system_prompt_in_establishment
+        }
+
         session_histories[session_id] = [SystemMessage(
-            content=system_prompt(req.token, establishment["id"], establishment["name"], establishment["chatbot"]["name"],
-                                  establishment["chatbot"]["communication_tone"]))]
+            content=system_prompt[req.prompt_variant](
+                req.token, establishment["id"], establishment["name"],
+                establishment["chatbot"]["name"], establishment["chatbot"]["communication_tone"]
+            )
+        )]
 
     # Añadir el mensaje del usuario
     history = session_histories[session_id]
@@ -168,6 +159,7 @@ async def chat(req: EstablishmentsRequest):
         "establishments": establishments,
     }
 
+
 class CustomStaticFiles(StaticFiles):
     async def get_response(self, path: str, scope):
         response = await super().get_response(path, scope)
@@ -176,6 +168,7 @@ class CustomStaticFiles(StaticFiles):
         if path.endswith(".js"):
             response.headers["Content-Type"] = "application/javascript"
         return response
+
 
 BASE_DIR = os.path.dirname(os.path.abspath(__file__))
 app.mount("/assets", CustomStaticFiles(directory=os.path.join(BASE_DIR, "public/spa/assets")), name="assets")
