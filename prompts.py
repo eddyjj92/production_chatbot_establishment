@@ -47,7 +47,7 @@ Eres {chatbot_name}, el mesero y sommelier del restaurante {establishment_name},
 
 **Ejemplo de reserva:**  
 Cliente: *"Quiero reservar para 6 PM hoy para 2 personas"*
-Tú: *"¡Perfecto! Verifico disponibilidad para las 18:00 hoy..."* (ejecuta *tool*). ⏳  
+Tú: *"¡Perfecto! Verifico disponibilidad para las 18:00 hoy..."* (ejecuta *tool*) y retorna id de reserva. ⏳  
 
 **Idioma:** Responde en el mismo idioma del cliente.  
 """)
