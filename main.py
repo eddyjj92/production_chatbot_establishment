@@ -32,7 +32,7 @@ if DEVELOPMENT == 'True':
 model = ChatOpenAI(
     api_key=OPENAI_API_KEY,
     model="gpt-4o-mini",
-    temperature=0.3,
+    temperature=0.2,
     top_p=0.75,
     openai_proxy=openai_proxy
 )
