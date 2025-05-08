@@ -267,5 +267,108 @@ def get_current_datetime() -> str:
     return f"Fecha {fecha} y hora {hora} actual"
 
 
+@mcp.tool(
+    name="check_business_hours",
+    description="Verifica si una fecha y hora específica está dentro del horario de apertura del establecimiento.",
+)
+def check_business_hours(
+        date: str,  # Fecha en formato YYYY-MM-DD (ej. "2023-12-25")
+        time: str,  # Hora en formato HH:MM (ej. "14:30")
+        establishment_id: str,  # ID del establecimiento
+        token: str,  # Token de autenticación
+        timezone: str = "UTC"  # Zona horaria (opcional)
+) -> dict:
+    """
+    Verifica si una fecha y hora está dentro del horario de apertura del establecimiento.
+
+    Args:
+        date (str): Fecha en formato YYYY-MM-DD.
+        time (str): Hora en formato HH:MM.
+        establishment_id (str): ID del establecimiento para obtener su horario.
+        token (str): Token de autenticación para la API.
+        timezone (str): Zona horaria (por defecto "UTC").
+
+    Returns:
+        dict: {
+            "is_open": bool,
+            "current_day": str,       # Nombre del día (ej. "monday")
+            "opening_time": str,      # Hora de apertura (ej. "08:00")
+            "closing_time": str,      # Hora de cierre (ej. "17:00")
+            "current_time": str,     # Hora actual formateada (ej. "14:30")
+            "message": str           # Mensaje descriptivo
+        }
+
+    Raises:
+        ValueError: Si los formatos no son válidos.
+    """
+    import json
+    from datetime import datetime
+    import pytz
+
+    try:
+        # Obtener horarios del establecimiento
+        business_hours = fetch_establishment_field(establishment_id, token, "schedule")
+        hours = json.loads(business_hours)
+
+        # Combinar fecha y hora
+        datetime_str = f"{date}T{time}:00"
+        dt = datetime.fromisoformat(datetime_str)
+
+        # Aplicar timezone si no tiene
+        if not dt.tzinfo:
+            tz = pytz.timezone(timezone)
+            dt = tz.localize(dt)
+
+        # Obtener día de la semana
+        weekday = dt.strftime("%A").lower()
+        day_schedule = hours.get(weekday)
+
+        if not day_schedule:
+            return {
+                "is_open": False,
+                "message": f"No se encontró horario para {weekday}"
+            }
+
+        # Manejar días cerrados
+        if day_schedule["opening"] == "closed":
+            print(f"""El establecimiento está cerrado los {weekday}""")
+            return {
+                "is_open": False,
+                "message": f"El establecimiento está cerrado los {weekday}"
+            }
+
+        # Convertir horas a minutos desde medianoche para comparación
+        current_time_min = dt.hour * 60 + dt.minute
+
+        opening_parts = day_schedule["opening"].split(":")
+        opening_min = int(opening_parts[0]) * 60 + int(opening_parts[1])
+
+        closing_parts = day_schedule["closing"].split(":")
+        closing_min = int(closing_parts[0]) * 60 + int(closing_parts[1])
+
+        # Verificar si está dentro del horario
+        is_open = opening_min <= current_time_min < closing_min
+
+        print(f"""Abierto: {is_open}""")
+
+        return {
+            "is_open": is_open,
+            "message": (
+                f"El establecimiento está {'abierto, se puede proceder con la reserva.' if is_open else 'cerrado, no se puede proceder con la reserva.'}. "
+                f"Horario de {day_schedule['opening']} a {day_schedule['closing']} los {weekday}."
+            )
+        }
+
+    except json.JSONDecodeError:
+        print("Formato de horarios inválido obtenido de la API")
+        raise ValueError("Formato de horarios inválido obtenido de la API")
+    except ValueError as e:
+        print(f"Formato de fecha/hora inválido: {str(e)}")
+        raise ValueError(f"Formato de fecha/hora inválido: {str(e)}")
+    except Exception as e:
+        print(f"Error al verificar horario: {str(e)}")
+        raise ValueError(f"Error al verificar horario: {str(e)}")
+
+
 if __name__ == "__main__":
     mcp.run(transport="sse")
