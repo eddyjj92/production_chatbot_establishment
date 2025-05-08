@@ -141,6 +141,7 @@ async def chat(req: MessageRequest, request: Request):
         return {
             "response": ai_msg,
             "reservation": reservation,
+            "messages": response["messages"]
         }
 
     except Exception as e:
