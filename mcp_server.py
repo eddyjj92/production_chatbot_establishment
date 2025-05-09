@@ -10,7 +10,7 @@ def fetch_establishment_field(establishment_id: str, token: str, field: str) -> 
     """
     Función auxiliar que obtiene un solo campo del establecimiento.
     """
-    url = f"https://www.clapzy.app/api/establishments/{establishment_id}"
+    url = f"https://backend.clapzy.app/api/establishments/{establishment_id}"
 
     headers = {
         "Authorization": f"Bearer {token}",
@@ -178,7 +178,7 @@ def create_reservation(
     Raises:
         SystemError: Si ocurre un error al comunicarse con la API.
     """
-    url = "https://www.clapzy.app/api/reservations"
+    url = "https://backend.clapzy.app/api/reservations"
 
     headers = {
         "Authorization": f"Bearer {token}",
@@ -196,6 +196,7 @@ def create_reservation(
     try:
         response = requests.post(url, headers=headers, json=payload)
         response.raise_for_status()
+        print(response.json()["reservation"]["uuid"])
         return response.json()["reservation"]["uuid"]
 
     except requests.exceptions.RequestException as e:
@@ -224,7 +225,7 @@ def get_user_reservations(token: str) -> list:
     Raises:
         SystemError: Si ocurre un error al comunicarse con la API.
     """
-    url = "https://www.clapzy.app/api/reservations/auth"  # Asegúrate que este es el endpoint correcto
+    url = "https://backend.clapzy.app/api/reservations/auth"  # Asegúrate que este es el endpoint correcto
 
     headers = {
         "Authorization": f"Bearer {token}",
@@ -355,7 +356,7 @@ def check_business_hours(
             "is_open": is_open,
             "message": (
                 f"El establecimiento está {'abierto, se puede proceder con la reserva.' if is_open else 'cerrado, no se puede proceder con la reserva.'}. "
-                f"Horario de {day_schedule['opening']} a {day_schedule['closing']} los {weekday}."
+                f"La hora {time} {'está' if is_open else 'no está'} dentro del horario de {day_schedule['opening']} a {day_schedule['closing']} los {weekday}."
             )
         }
 
