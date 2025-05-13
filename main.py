@@ -95,7 +95,10 @@ async def chat(req: MessageRequest, request: Request):
     print(establishment)
     if establishment.get("error"):
         print(f"""Error: {establishment["error"]}""")
-        return {"error": establishment["error"]}
+        return {
+            "error": establishment["error"],
+            "details": establishment["details"]
+        }
 
     session_id = f"""{req.session_id}_{req.prompt_variant}_{establishment["id"]}"""
     user_input = req.message

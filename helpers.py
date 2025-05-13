@@ -3,7 +3,7 @@ import requests
 
 
 def get_establishment(establishment_id, token) -> Optional[Dict]:
-    url = f"https://www.clapzy.app/api/establishments/{establishment_id}"
+    url = f"https://backend.clapzy.app/api/establishments/{establishment_id}"
 
     headers = {
         "Authorization": f"Bearer {token}",
@@ -30,7 +30,7 @@ def get_establishment(establishment_id, token) -> Optional[Dict]:
 
 
 def get_establishments(token) -> Union[List[Dict], Dict[str, str]]:
-    url = f"https://www.clapzy.app/api/establishments?per_page=100&page=1"
+    url = f"https://backend.clapzy.app/api/establishments?per_page=100&page=1"
 
     headers = {
         "Authorization": f"Bearer {token}",
