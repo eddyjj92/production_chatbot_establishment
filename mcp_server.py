@@ -212,11 +212,12 @@ def create_reservation(
     name="get_user_reservations",
     description="Obtiene todas las reservaciones del usuario autenticado en Clapzy.",
 )
-def get_user_reservations(token: str) -> list:
+def get_user_reservations(establishment_id: int, token: str) -> list:
     """
     Obtiene las reservaciones del usuario autenticado utilizando la API de Clapzy.
 
     Args:
+        establishment_id (int): ID único del establecimiento donde se desea hacer la reserva.
         token (str): Token de autenticación Bearer válido para la API de Clapzy.
 
     Returns:
@@ -225,7 +226,7 @@ def get_user_reservations(token: str) -> list:
     Raises:
         SystemError: Si ocurre un error al comunicarse con la API.
     """
-    url = "https://backend.clapzy.app/api/reservations/auth"  # Asegúrate que este es el endpoint correcto
+    url = f"https://backend.clapzy.app/api/reservations/auth?establishment_id={establishment_id}"  # Asegúrate que este es el endpoint correcto
 
     headers = {
         "Authorization": f"Bearer {token}",
