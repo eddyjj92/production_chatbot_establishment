@@ -4,6 +4,8 @@ from typing import Literal
 from dotenv import load_dotenv
 from fastapi import FastAPI, Request
 from fastapi.middleware.cors import CORSMiddleware
+from langchain_mcp_adapters.tools import load_mcp_tools
+from mcp import StdioServerParameters, stdio_client, ClientSession
 from pydantic import BaseModel
 from langchain_openai import ChatOpenAI
 from langchain_mcp_adapters.client import MultiServerMCPClient
@@ -57,24 +59,24 @@ class EstablishmentsRequest(BaseModel):
 # Context manager para manejar eventos de inicio y cierre de la aplicación
 @asynccontextmanager
 async def lifespan(app: FastAPI):
-    MCP_SERVER_URL = os.getenv("MCP_SERVER_URL", "http://localhost:8000")
+    server_params = StdioServerParameters(
+        command="python",
+        # Make sure to update to the full absolute path to your math_server.py file
+        args=["mcp_server.py"],
+    )
 
-    # Inicializar herramientas y agente
-    app.state.client = await MultiServerMCPClient({
-        "mcp": {
-            # make sure you start your weather server on port 8000
-            "url": f"{MCP_SERVER_URL}/sse",
-            "transport": "sse"
-        }
-    }).__aenter__()
+    async with stdio_client(server_params) as (read, write):
+        async with ClientSession(read, write) as session:
+            # Initialize the connection
+            await session.initialize()
 
-    tools = app.state.client.get_tools()
-    memory = MemorySaver()
-    app.state.agent = create_react_agent(model, tools=tools, checkpointer=memory)
+            # Get tools
+            tools = await load_mcp_tools(session)
 
-    yield
+            # Create and run the agent
+            app.state.agent = create_react_agent(model, tools=tools)
 
-    await app.state.client.__aexit__(None, None, None)
+            yield
 
 
 # Crear la aplicación FastAPI
@@ -162,6 +164,37 @@ async def chat(req: EstablishmentsRequest):
     return {
         "establishments": establishments,
     }
+
+
+class ResetRequest(BaseModel):
+    session_id: str
+    establishment_id: int
+    prompt_variant: Literal['reservation', 'in_establishment']
+@app.post("/reset_session")
+async def reset_session(request_data: ResetRequest):
+    """
+    Resetea completamente el historial y estado del agente para una sesión específica.
+    """
+
+    session_id = f"""{request_data.session_id}_{request_data.prompt_variant}_{request_data.establishment_id}"""
+    try:
+        # Limpiar historial en memoria local
+        if session_id in session_histories:
+            del session_histories[session_id]
+
+        print(session_histories)
+
+        return {
+            "status": "success",
+            "message": f"Memoria completa de sesión: {session_id} reseteada correctamente"
+        }
+
+    except Exception as e:
+        return {
+            "status": "error",
+            "message": f"Error al resetear sesión {session_id}",
+            "error": str(e)
+        }
 
 
 class CustomStaticFiles(StaticFiles):

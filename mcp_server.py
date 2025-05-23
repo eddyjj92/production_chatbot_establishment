@@ -238,7 +238,11 @@ def get_user_reservations(establishment_id: int, token: str) -> list:
         response.raise_for_status()
 
         # Devuelve la lista completa de reservaciones
-        return response.json().get("reservations", [])
+
+        reservations_data = response.json().get("reservations", [])
+        campos_deseados = ["uuid", "date", "time", "peoples", "state"]
+        reservas_filtradas = [{campo: reserva.get(campo) for campo in campos_deseados} for reserva in reservations_data]
+        return reservas_filtradas
 
     except requests.exceptions.RequestException as e:
         error_msg = f"Error en la petición: {e}"
@@ -373,4 +377,4 @@ def check_business_hours(
 
 
 if __name__ == "__main__":
-    mcp.run(transport="sse")
+    mcp.run(transport="stdio")
