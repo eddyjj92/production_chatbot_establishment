@@ -278,8 +278,8 @@ def get_current_datetime() -> str:
     description="Verifica si una fecha y hora específica está dentro del horario de apertura del establecimiento.",
 )
 def check_business_hours(
-        date: str,  # Fecha en formato YYYY-MM-DD (ej. "2023-12-25")
-        time: str,  # Hora en formato HH:MM (ej. "14:30")
+        date: str,  # Fecha en formato YYYY-MM-DD
+        time: str,  # Hora en formato HH:MM
         establishment_id: str,  # ID del establecimiento
         token: str,  # Token de autenticación
         timezone: str = "UTC"  # Zona horaria (opcional)
