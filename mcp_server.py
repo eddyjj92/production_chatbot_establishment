@@ -10,7 +10,7 @@ def fetch_establishment_field(establishment_id: str, token: str, field: str) -> 
     """
     Función auxiliar que obtiene un solo campo del establecimiento.
     """
-    url = f"https://backend.clapzy.app/api/establishments/{establishment_id}"
+    url = f"https://backend.clapzy.pro/api/establishments/{establishment_id}"
 
     headers = {
         "Authorization": f"Bearer {token}",
@@ -178,7 +178,7 @@ def create_reservation(
     Raises:
         SystemError: Si ocurre un error al comunicarse con la API.
     """
-    url = "https://backend.clapzy.app/api/reservations"
+    url = "https://backend.clapzy.pro/api/reservations"
 
     headers = {
         "Authorization": f"Bearer {token}",
@@ -226,7 +226,7 @@ def get_user_reservations(establishment_id: int, token: str) -> list:
     Raises:
         SystemError: Si ocurre un error al comunicarse con la API.
     """
-    url = f"https://backend.clapzy.app/api/reservations/auth?establishment_id={establishment_id}"  # Asegúrate que este es el endpoint correcto
+    url = f"https://backend.clapzy.pro/api/reservations/auth?establishment_id={establishment_id}"  # Asegúrate que este es el endpoint correcto
 
     headers = {
         "Authorization": f"Bearer {token}",
