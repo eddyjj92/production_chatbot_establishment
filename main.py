@@ -24,6 +24,7 @@ redis = Redis(host='82.29.197.144', port=6379, db=0, decode_responses=True)
 # Cargar variables de entorno
 load_dotenv()
 OPENAI_API_KEY = os.getenv("OPENAI_API_KEY")
+OPENAI_API_MODEL = os.getenv("OPENAI_API_MODEL")
 DEVELOPMENT = os.getenv("DEVELOPMENT")
 openai_proxy = None
 
@@ -33,7 +34,7 @@ if DEVELOPMENT == 'True':
 # Configurar el modelo
 model = ChatOpenAI(
     api_key=OPENAI_API_KEY,
-    model="gpt-4o-mini",
+    model=OPENAI_API_MODEL,
     temperature=0.2,
     top_p=0.75,
     openai_proxy=openai_proxy
