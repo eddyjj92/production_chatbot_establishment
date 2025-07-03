@@ -1,5 +1,6 @@
 from typing import Optional, Dict, Union, List
 import requests
+import random
 
 
 def get_establishment(establishment_id, token) -> Optional[Dict]:
@@ -55,8 +56,6 @@ def get_establishments(token) -> Union[List[Dict], Dict[str, str]]:
         print(f"Error inesperado: {e}")
         return {"error": "Error inesperado", "details": str(e)}
 
-
-import random
 
 def get_greeting_message():
     greetings = [
