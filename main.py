@@ -15,7 +15,7 @@ from langchain_core.messages import HumanMessage, SystemMessage, AIMessage
 from contextlib import asynccontextmanager
 from redis import Redis
 from starlette.staticfiles import StaticFiles
-from helpers import get_establishment, get_establishments
+from helpers import get_establishment, get_establishments, get_greeting_message
 from prompts import system_prompt_reservation, system_prompt_in_establishment
 
 # Conexión a Redis
@@ -121,7 +121,7 @@ async def chat(req: MessageRequest, request: Request):
         )]
 
         # Añadir saludo inicial estático del agente
-        greeting_message = AIMessage(content="¡Hola! ¿En qué puedo ayudarte hoy?")
+        greeting_message = AIMessage(content=get_greeting_message())
         session_histories[session_id].append(greeting_message)
 
         # Devolver directamente el saludo sin llamar al modelo
