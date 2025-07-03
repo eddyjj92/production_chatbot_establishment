@@ -103,7 +103,7 @@ async def chat(req: MessageRequest, request: Request):
             "details": establishment["details"]
         }
 
-    session_id = f"""{req.session_id}_{req.prompt_variant}_{establishment["id"]}"""
+    session_id = f"{req.session_id}_{req.prompt_variant}_{establishment['id']}"
     user_input = req.message
 
     # Inicializar historial si no existe
@@ -119,6 +119,17 @@ async def chat(req: MessageRequest, request: Request):
                 establishment["chatbot"]["name"], establishment["chatbot"]["communication_tone"]
             )
         )]
+
+        # Añadir saludo inicial estático del agente
+        greeting_message = AIMessage(content="¡Hola! ¿En qué puedo ayudarte hoy?")
+        session_histories[session_id].append(greeting_message)
+
+        # Devolver directamente el saludo sin llamar al modelo
+        return {
+            "response": greeting_message,
+            "reservation": None,
+            "messages": session_histories[session_id]
+        }
 
     # Añadir el mensaje del usuario
     history = session_histories[session_id]
@@ -138,9 +149,8 @@ async def chat(req: MessageRequest, request: Request):
         session_histories[session_id].append(ai_msg)
 
         reservation = None
-        if response["messages"][-2].type == "tool" and response["messages"][-2].content:
+        if len(response["messages"]) >= 2 and response["messages"][-2].type == "tool" and response["messages"][-2].content:
             tool_name = response["messages"][-2].name
-
             if tool_name == 'create_reservation':
                 reservation = response["messages"][-2].content
 
